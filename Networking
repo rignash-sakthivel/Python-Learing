@@ -1,0 +1,41 @@
+#1. Display Local IP Address and Port Number
+# import socket
+# hostname = socket.gethostname()
+# ip_address = socket.gethostbyname(hostname)
+# port = int(input("Enter port number: "))
+# print("Hostname:", hostname)
+# print("Local IP Address:", ip_address)
+# print("Port Number:", port)
+
+#2. Display the Hostname of Your Computer
+# import socket
+# hostname = socket.gethostname()
+# print("Computer Hostname:", hostname)
+
+#3. Find the IP Address of a Given Hostname
+# import socket
+# hostname = input("Enter hostname: ")
+# try:
+#     ip_address = socket.gethostbyname(hostname)
+#     print("IP Address:", ip_address)
+# except socket.gaierror:
+#     print("Invalid hostname or unable to resolve IP address")
+
+#4. Check Whether a Port Is Open on a Server
+# import socket
+# 
+# host = input("Enter server hostname or IP address: ")
+# port = int(input("Enter port number: "))
+# 
+# client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client.settimeout(3)
+# 
+# try:
+#     client.connect((host, port))
+#     print("Port", port, "is OPEN")
+# 
+# except (socket.timeout, ConnectionRefusedError, OSError):
+#     print("Port", port, "is CLOSED or unreachable")
+# 
+# finally:
+#     client.close()
