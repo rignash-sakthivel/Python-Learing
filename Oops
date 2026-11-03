@@ -1,0 +1,137 @@
+#class - Object
+# Write a program to check whether a number is positive, negative, or zero
+# class posneg():
+#     def numbers(self,x):
+#         if x < 0:
+#             print("Negative")
+#         elif x > 0:
+#             print("Positive")
+#         else:
+#             print("Zero")
+# s = posneg()
+# s.numbers(1)
+
+
+#Create a Vehicle class with a method start().
+
+# class Vehicle:
+#     def choosing1(self):
+#         print("Enter the Vehicle Details")
+#
+# class Bike(Vehicle):
+#     def choosing2(self):
+#         self.a = input("Enter the Bike Name: ")
+#         self.b = int(input("Enter the Bike Price: "))
+#         self.c = input("Enter the Bike Status: ")
+#
+# class Car(Vehicle):
+#     def choosing3(self):
+#         self.d = input("Enter the Car Name: ")
+#         self.e = int(input("Enter the Car Price: "))
+#         self.f = input("Enter the Car Status: ")
+#
+# r = Vehicle()
+# q = Bike()
+# y = Car()
+#
+# r.choosing1()
+# q.choosing2()
+# y.choosing3()
+#
+# print("\n--- Bike Details ---")
+# print("Bike Name:", q.a)
+# print("Bike Price:", q.b)
+# print("Bike Status:", q.c)
+#
+# print("\n--- Car Details ---")
+# print("Car Name:", y.d)
+# print("Car Price:", y.e)
+# print("Car Status:", y.f)
+
+
+#Create Dog and Cat classes with a method sound()
+# class Dog:
+#     def sound(self):
+#         print(self.name, "says: Woof Woof!")
+# class Cat:
+#     def sound(self):
+#         print(self.name, "says: Meow Meow!")
+# choice = input("Enter animal (Dog/Cat): ").lower()
+# name = input("Enter animal name: ")
+# if choice == "dog":
+#     animal = Dog()
+#     animal.name = name
+#     animal.sound()
+# elif choice == "cat":
+#     animal = Cat()
+#     animal.name = name
+#     animal.sound()
+# else:
+#     print("Invalid animal choice!")
+
+#Calculator
+# from abc import ABC, abstractmethod
+# class calcualtor(ABC):
+#     @abstractmethod
+#     def Calculate(self,x,y):
+#         pass
+# class Addition(calcualtor):
+#         def Calculate(self,x,y):
+#             return x+y
+# class Subtraction(calcualtor):
+#         def Calculate(self,x,y):
+#             return x-y
+# class Multiplication(calcualtor):
+#         def Calculate(self,x,y):
+#             return x*y
+# class Division(calcualtor):
+#         def Calculate(self,x,y):
+#             return x/y
+# x = int(input("Enter the First Number: "))
+# y = int(input("Enter the second Number: "))
+#
+# a = Addition()
+# b = Subtraction()
+# c = Multiplication()
+# d = Division()
+#
+# print("Addition =",a.Calculate(x,y))
+# print("Substrction =",b.Calculate(x,y))
+# print("Multiplication =",c.Calculate(x,y))
+# print("Divition =",d.Calculate(x,y))
+
+
+#BankAccount Private
+# class BankAccount:
+#     def __init__(self, balance):
+#         self.__balance = balance  # Private variable
+#     def deposit(self, amount):
+#         if amount > 0:
+#             self.__balance += amount
+#             print("Amount Deposited Successfully!")
+#         else:
+#             print("Invalid Deposit Amount!")
+#     def withdraw(self, amount):
+#         if amount <= 0:
+#             print("Invalid Withdrawal Amount!")
+#         elif amount <= self.__balance:
+#             self.__balance -= amount
+#             print("Amount Withdrawn Successfully!")
+#         else:
+#             print("Insufficient Balance!")
+#     def display(self):
+#         print("Available Balance:", self.__balance)
+# balance = int(input("Enter Initial Balance: "))
+# account = BankAccount(balance)
+# deposit_amount = int(input("Enter Deposit Amount: "))
+# account.deposit(deposit_amount)
+# withdraw_amount = int(input("Enter Withdrawal Amount: "))
+# account.withdraw(withdraw_amount)
+# account.display()
+
+
+
+
+
+
+
