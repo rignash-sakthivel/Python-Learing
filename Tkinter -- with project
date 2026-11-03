@@ -1,0 +1,478 @@
+# import tkinter as tk
+# from tkinter import ttk, messagebox, simpledialog
+# 
+# 
+# MIN_AGE = 18
+# MAX_AGE = 120
+# ADMIN_PIN = "1234"  # For real use, load from a config/env variable or hash it.
+# 
+# 
+# class VotingSystem:
+#     def __init__(self, root):
+#         self.root = root
+#         self.root.title("Smart Voting System")
+#         self.root.geometry("900x650")
+#         self.root.configure(bg="#f1f5f9")
+# 
+#         # State lives on the instance instead of module-level globals.
+#         self.election_open = False
+#         self.voters = {}
+#         self.candidates = {}
+#         self.choice_to_id = {}  # combobox text -> candidate id
+# 
+#         style = ttk.Style()
+#         style.theme_use("clam")
+#         style.configure("Treeview", rowheight=28)
+#         style.configure("TButton", padding=6)
+# 
+#         title = tk.Label(
+#             root, text="SMART VOTING SYSTEM",
+#             font=("Arial", 22, "bold"),
+#             bg="#1e293b", fg="white", pady=18
+#         )
+#         title.pack(fill="x")
+# 
+#         self.status = tk.Label(
+#             root, text="Election Status: CLOSED",
+#             font=("Arial", 12, "bold"),
+#             bg="#f1f5f9", fg="red"
+#         )
+#         self.status.pack(pady=10)
+# 
+#         self.tabs = ttk.Notebook(root)
+#         self.tabs.pack(fill="both", expand=True, padx=15, pady=10)
+# 
+#         self.voter_tab = ttk.Frame(self.tabs, padding=15)
+#         self.candidate_tab = ttk.Frame(self.tabs, padding=15)
+#         self.vote_tab = ttk.Frame(self.tabs, padding=15)
+#         self.results_tab = ttk.Frame(self.tabs, padding=15)
+# 
+#         self.tabs.add(self.voter_tab, text="Register Voter")
+#         self.tabs.add(self.candidate_tab, text="Candidates")
+#         self.tabs.add(self.vote_tab, text="Cast Vote")
+#         self.tabs.add(self.results_tab, text="Results")
+# 
+#         self.create_voter_tab()
+#         self.create_candidate_tab()
+#         self.create_vote_tab()
+#         self.create_results_tab()
+# 
+#         bottom = ttk.Frame(root, padding=10)
+#         bottom.pack(side="bottom", fill="x", before=self.tabs)
+# 
+#         ttk.Button(
+#             bottom, text="Open / Close Election",
+#             command=self.change_status
+#         ).pack(side="left", padx=5)
+# 
+#         ttk.Button(
+#             bottom, text="Refresh Data",
+#             command=self.refresh_all
+#         ).pack(side="left", padx=5)
+# 
+#         ttk.Button(
+#             bottom, text="Exit",
+#             command=root.destroy
+#         ).pack(side="right", padx=5)
+# 
+#         self.refresh_all()
+# 
+#     # ------------------------------------------------------------------ UI
+#     def create_voter_tab(self):
+#         ttk.Label(
+#             self.voter_tab, text="Voter Registration",
+#             font=("Arial", 16, "bold")
+#         ).pack(pady=10)
+# 
+#         self.voter_id = self.add_field(self.voter_tab, "Voter ID:")
+#         self.voter_name = self.add_field(self.voter_tab, "Full Name:")
+#         self.voter_age = self.add_field(self.voter_tab, "Age:")
+# 
+#         ttk.Button(
+#             self.voter_tab, text="Register Voter",
+#             command=self.register_voter
+#         ).pack(pady=15)
+# 
+#     def create_candidate_tab(self):
+#         ttk.Label(
+#             self.candidate_tab, text="Candidate Management",
+#             font=("Arial", 16, "bold")
+#         ).pack(pady=5)
+# 
+#         form = ttk.Frame(self.candidate_tab)
+#         form.pack(pady=10)
+# 
+#         ttk.Label(form, text="Candidate ID:").grid(
+#             row=0, column=0, padx=5, pady=5
+#         )
+#         self.candidate_id = ttk.Entry(form, width=20)
+#         self.candidate_id.grid(row=0, column=1, padx=5)
+# 
+#         ttk.Label(form, text="Candidate Name:").grid(
+#             row=1, column=0, padx=5, pady=5
+#         )
+#         self.candidate_name = ttk.Entry(form, width=20)
+#         self.candidate_name.grid(row=1, column=1, padx=5)
+# 
+#         ttk.Button(
+#             form, text="Add Candidate",
+#             command=self.add_candidate
+#         ).grid(row=2, column=0, columnspan=2, pady=10)
+# 
+#         self.candidate_table = ttk.Treeview(
+#             self.candidate_tab,
+#             columns=("id", "name", "votes"),
+#             show="headings", height=10
+#         )
+# 
+#         for col, heading in [
+#             ("id", "Candidate ID"),
+#             ("name", "Candidate Name"),
+#             ("votes", "Votes")
+#         ]:
+#             self.candidate_table.heading(col, text=heading)
+#             self.candidate_table.column(col, width=180, anchor="center")
+# 
+#         self.candidate_table.pack(fill="both", expand=True, pady=10)
+# 
+#     def create_vote_tab(self):
+#         ttk.Label(
+#             self.vote_tab, text="Cast Your Vote",
+#             font=("Arial", 16, "bold")
+#         ).pack(pady=15)
+# 
+#         ttk.Label(self.vote_tab, text="Enter Voter ID:").pack(pady=5)
+#         self.vote_voter_id = ttk.Entry(self.vote_tab, width=30)
+#         self.vote_voter_id.pack(pady=5)
+# 
+#         ttk.Label(self.vote_tab, text="Select Candidate:").pack(pady=5)
+#         self.vote_candidate = ttk.Combobox(
+#             self.vote_tab, width=28, state="readonly"
+#         )
+#         self.vote_candidate.pack(pady=5)
+# 
+#         ttk.Button(
+#             self.vote_tab, text="Submit Vote",
+#             command=self.cast_vote
+#         ).pack(pady=20)
+# 
+#         ttk.Label(
+#             self.vote_tab,
+#             text="Each registered voter can vote only once.",
+#             font=("Arial", 10)
+#         ).pack(pady=5)
+# 
+#     def create_results_tab(self):
+#         ttk.Label(
+#             self.results_tab, text="Election Results",
+#             font=("Arial", 16, "bold")
+#         ).pack(pady=10)
+# 
+#         # Buttons are packed first (at the bottom) so they are never
+#         # pushed out of view by the expanding table.
+#         buttons = ttk.Frame(self.results_tab)
+#         buttons.pack(side="bottom", fill="x")
+# 
+#         ttk.Button(
+#             buttons, text="Show Final Results",
+#             command=self.show_results
+#         ).pack(side="left", padx=10, pady=10)
+# 
+#         ttk.Button(
+#             buttons, text="Save Results",
+#             command=self.save_results
+#         ).pack(side="left", padx=10, pady=10)
+# 
+#         self.results_table = ttk.Treeview(
+#             self.results_tab,
+#             columns=("name", "votes"),
+#             show="headings", height=12
+#         )
+#         self.results_table.heading("name", text="Candidate")
+#         self.results_table.heading("votes", text="Votes")
+#         self.results_table.column("name", width=250, anchor="center")
+#         self.results_table.column("votes", width=150, anchor="center")
+#         self.results_table.pack(fill="both", expand=True, pady=10)
+# 
+#     def add_field(self, parent, label):
+#         frame = ttk.Frame(parent)
+#         frame.pack(pady=8)
+# 
+#         ttk.Label(frame, text=label, width=15).pack(side="left")
+#         entry = ttk.Entry(frame, width=30)
+#         entry.pack(side="left")
+#         return entry
+# 
+#     # ------------------------------------------------------------- helpers
+#     @staticmethod
+#     def valid_name(name):
+#         """Letters (any language) plus spaces, dots, hyphens, apostrophes."""
+#         return (
+#             any(ch.isalpha() for ch in name)
+#             and all(ch.isalpha() or ch in " .'-" for ch in name)
+#         )
+# 
+#     def total_votes(self):
+#         return sum(c["votes"] for c in self.candidates.values())
+# 
+#     # ------------------------------------------------------------- actions
+#     def register_voter(self):
+#         voter_id = self.voter_id.get().strip()
+#         name = self.voter_name.get().strip()
+#         age_text = self.voter_age.get().strip()
+# 
+#         if not voter_id or not name or not age_text:
+#             messagebox.showerror("Error", "Fill in all voter details.")
+#             return
+# 
+#         if voter_id in self.voters:
+#             messagebox.showerror("Error", "Voter ID already exists.")
+#             return
+# 
+#         if not self.valid_name(name):
+#             messagebox.showerror("Error", "Enter a valid name.")
+#             return
+# 
+#         try:
+#             age = int(age_text)
+#         except ValueError:
+#             messagebox.showerror("Error", "Age must be a number.")
+#             return
+# 
+#         if age < MIN_AGE:
+#             messagebox.showerror(
+#                 "Error", f"Voter must be at least {MIN_AGE} years old."
+#             )
+#             return
+# 
+#         if age > MAX_AGE:
+#             messagebox.showerror("Error", "Enter a valid age.")
+#             return
+# 
+#         self.voters[voter_id] = {
+#             "name": name,
+#             "age": age,
+#             "voted": False
+#         }
+# 
+#         messagebox.showinfo("Success", "Voter registered successfully.")
+# 
+#         self.voter_id.delete(0, tk.END)
+#         self.voter_name.delete(0, tk.END)
+#         self.voter_age.delete(0, tk.END)
+# 
+#     def add_candidate(self):
+#         # Changing the ballot while voting is open (or after votes were
+#         # cast) would be unfair, so it is not allowed.
+#         if self.election_open or self.total_votes() > 0:
+#             messagebox.showwarning(
+#                 "Not Allowed",
+#                 "Candidates cannot be added once voting has started."
+#             )
+#             return
+# 
+#         candidate_id = self.candidate_id.get().strip()
+#         name = self.candidate_name.get().strip()
+# 
+#         if not candidate_id or not name:
+#             messagebox.showerror(
+#                 "Error", "Enter candidate ID and name."
+#             )
+#             return
+# 
+#         if candidate_id in self.candidates:
+#             messagebox.showerror(
+#                 "Error", "Candidate ID already exists."
+#             )
+#             return
+# 
+#         if any(c["name"].lower() == name.lower()
+#                for c in self.candidates.values()):
+#             messagebox.showerror(
+#                 "Error", "A candidate with this name already exists."
+#             )
+#             return
+# 
+#         self.candidates[candidate_id] = {
+#             "name": name,
+#             "votes": 0
+#         }
+# 
+#         messagebox.showinfo("Success", "Candidate added successfully.")
+# 
+#         self.candidate_id.delete(0, tk.END)
+#         self.candidate_name.delete(0, tk.END)
+#         self.refresh_all()
+# 
+#     def cast_vote(self):
+#         if not self.election_open:
+#             messagebox.showwarning(
+#                 "Election Closed", "Voting is currently closed."
+#             )
+#             return
+# 
+#         voter_id = self.vote_voter_id.get().strip()
+#         selected = self.vote_candidate.get()
+# 
+#         if voter_id not in self.voters:
+#             messagebox.showerror("Error", "Voter is not registered.")
+#             return
+# 
+#         if self.voters[voter_id]["voted"]:
+#             messagebox.showerror("Error", "This voter has already voted.")
+#             return
+# 
+#         if not selected:
+#             messagebox.showerror("Error", "Please select a candidate.")
+#             return
+# 
+#         candidate_id = self.choice_to_id.get(selected)
+# 
+#         if candidate_id not in self.candidates:
+#             messagebox.showerror("Error", "Invalid candidate selection.")
+#             return
+# 
+#         self.candidates[candidate_id]["votes"] += 1
+#         self.voters[voter_id]["voted"] = True
+# 
+#         messagebox.showinfo("Success", "Your vote was recorded.")
+# 
+#         self.vote_voter_id.delete(0, tk.END)
+#         self.vote_candidate.set("")
+#         self.refresh_all()
+# 
+#     def change_status(self):
+#         pin = simpledialog.askstring(
+#             "Admin Login", "Enter admin PIN:", show="*", parent=self.root
+#         )
+# 
+#         if pin is None:
+#             return
+# 
+#         if pin != ADMIN_PIN:
+#             messagebox.showerror("Access Denied", "Incorrect admin PIN.")
+#             return
+# 
+#         if not self.election_open and not self.candidates:
+#             messagebox.showwarning(
+#                 "Cannot Open", "Add at least one candidate first."
+#             )
+#             return
+# 
+#         self.election_open = not self.election_open
+#         self.refresh_all()
+# 
+#         messagebox.showinfo(
+#             "Election Status",
+#             "Election is now " + ("OPEN" if self.election_open else "CLOSED")
+#         )
+# 
+#     def update_status(self):
+#         status = "OPEN" if self.election_open else "CLOSED"
+#         self.status.config(
+#             text=f"Election Status: {status}",
+#             fg="green" if self.election_open else "red"
+#         )
+# 
+#     def refresh_all(self):
+#         self.update_status()
+# 
+#         self.candidate_table.delete(*self.candidate_table.get_children())
+#         self.results_table.delete(*self.results_table.get_children())
+# 
+#         # Hide running totals while voting is open so the tally can't
+#         # influence later voters.
+#         for cid, candidate in self.candidates.items():
+#             votes = "Hidden" if self.election_open else candidate["votes"]
+#             self.candidate_table.insert(
+#                 "", "end", values=(cid, candidate["name"], votes)
+#             )
+# 
+#         self.choice_to_id = {
+#             f"{cid} - {candidate['name']}": cid
+#             for cid, candidate in self.candidates.items()
+#         }
+#         self.vote_candidate["values"] = list(self.choice_to_id)
+# 
+#         if not self.election_open:
+#             self.fill_results_table()
+# 
+#     def fill_results_table(self):
+#         self.results_table.delete(*self.results_table.get_children())
+# 
+#         ranked = sorted(
+#             self.candidates.values(),
+#             key=lambda c: c["votes"], reverse=True
+#         )
+#         for candidate in ranked:
+#             self.results_table.insert(
+#                 "", "end", values=(candidate["name"], candidate["votes"])
+#             )
+# 
+#     def show_results(self):
+#         if self.election_open:
+#             messagebox.showwarning(
+#                 "Election Open",
+#                 "Close the election before viewing final results."
+#             )
+#             return
+# 
+#         if not self.candidates:
+#             messagebox.showinfo("Results", "No candidates available.")
+#             return
+# 
+#         self.fill_results_table()
+#         messagebox.showinfo("Final Results", self.result_summary())
+# 
+#     def result_summary(self):
+#         highest = max(c["votes"] for c in self.candidates.values())
+# 
+#         if highest == 0:
+#             return "No votes were cast."
+# 
+#         winners = [
+#             c["name"] for c in self.candidates.values()
+#             if c["votes"] == highest
+#         ]
+# 
+#         if len(winners) == 1:
+#             return f"Winner: {winners[0]} ({highest} votes)"
+#         return "Tie between: " + ", ".join(winners)
+# 
+#     def save_results(self):
+#         if self.election_open:
+#             messagebox.showwarning(
+#                 "Election Open",
+#                 "Close the election before saving final results."
+#             )
+#             return
+# 
+#         if not self.candidates:
+#             messagebox.showinfo("Results", "No candidates available.")
+#             return
+# 
+#         try:
+#             with open("voting_results.txt", "w", encoding="utf-8") as file:
+#                 file.write("VOTING RESULTS\n")
+#                 file.write("----------------------\n")
+# 
+#                 for candidate in self.candidates.values():
+#                     file.write(
+#                         f"{candidate['name']}: "
+#                         f"{candidate['votes']} vote(s)\n"
+#                     )
+# 
+#                 file.write("----------------------\n")
+#                 file.write(self.result_summary() + "\n")
+# 
+#             messagebox.showinfo(
+#                 "Saved", "Results saved in voting_results.txt"
+#             )
+#         except OSError as error:
+#             messagebox.showerror("File Error", str(error))
+# 
+# 
+# if __name__ == "__main__":
+#     root = tk.Tk()
+#     app = VotingSystem(root)
+#     root.mainloop()
