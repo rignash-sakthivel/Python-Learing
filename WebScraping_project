@@ -1,0 +1,232 @@
+
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+from urllib.parse import urljoin, urlparse
+
+
+class WebScrapingSystem:
+
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Automated Web Scraping and Data Collection System")
+        self.root.geometry("1000x650")
+        self.root.configure(bg="#eaf2f8")
+
+        self.data = []
+
+        title = tk.Label(
+            root,
+            text="Automated Web Scraping System",
+            font=("Arial", 22, "bold"),
+            bg="#eaf2f8",
+            fg="#154360"
+        )
+        title.pack(pady=15)
+
+        input_frame = tk.Frame(root, bg="#eaf2f8")
+        input_frame.pack(pady=10)
+
+        tk.Label(
+            input_frame,
+            text="Enter Website URL:",
+            font=("Arial", 12),
+            bg="#eaf2f8"
+        ).grid(row=0, column=0, padx=5)
+
+        self.url_entry = tk.Entry(input_frame, width=55, font=("Arial", 12))
+        self.url_entry.grid(row=0, column=1, padx=5)
+        self.url_entry.insert(0, "https://example.com")
+
+        tk.Button(
+            input_frame,
+            text="Start Scraping",
+            command=self.scrape_website,
+            bg="#2874a6",
+            fg="white",
+            font=("Arial", 11, "bold")
+        ).grid(row=0, column=2, padx=5)
+
+        columns = ("Title", "Link")
+
+        self.table = ttk.Treeview(
+            root,
+            columns=columns,
+            show="headings"
+        )
+
+        self.table.heading("Title", text="Website Title")
+        self.table.heading("Link", text="Website Link")
+
+        self.table.column("Title", width=350)
+        self.table.column("Link", width=550)
+
+        self.table.pack(fill="both", expand=True, padx=20, pady=15)
+
+        button_frame = tk.Frame(root, bg="#eaf2f8")
+        button_frame.pack(pady=15)
+
+        tk.Button(
+            button_frame,
+            text="Export CSV",
+            command=self.export_csv,
+            bg="#239b56",
+            fg="white",
+            width=15
+        ).grid(row=0, column=0, padx=10)
+
+        tk.Button(
+            button_frame,
+            text="Export Excel",
+            command=self.export_excel,
+            bg="#148f77",
+            fg="white",
+            width=15
+        ).grid(row=0, column=1, padx=10)
+
+        tk.Button(
+            button_frame,
+            text="Clear Data",
+            command=self.clear_data,
+            bg="#c0392b",
+            fg="white",
+            width=15
+        ).grid(row=0, column=2, padx=10)
+
+        self.status = tk.Label(
+            root,
+            text="Ready to collect website data",
+            bg="#eaf2f8",
+            font=("Arial", 10)
+        )
+        self.status.pack(pady=5)
+
+    def scrape_website(self):
+
+        url = self.url_entry.get().strip()
+
+        if not url:
+            messagebox.showwarning("Warning", "Please enter a website URL")
+            return
+
+        if urlparse(url).scheme not in ("http", "https") or not urlparse(url).netloc:
+            messagebox.showerror("Error", "Enter a valid HTTP or HTTPS URL")
+            return
+
+        try:
+            self.status.config(text="Collecting website data...")
+
+            headers = {
+                "User-Agent": "Mozilla/5.0 (compatible; EducationalScraper/1.0)"
+            }
+
+            response = requests.get(
+                url,
+                headers=headers,
+                timeout=15
+            )
+
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            self.data = []
+
+            for link in soup.find_all("a", href=True):
+
+                link_title = link.get_text(" ", strip=True)
+                link_url = urljoin(url, link["href"])
+
+                if link_title:
+                    record = {
+                        "Title": link_title,
+                        "Link": link_url
+                    }
+
+                    self.data.append(record)
+
+            self.display_data()
+
+            self.status.config(
+                text=f"Successfully collected {len(self.data)} records"
+            )
+
+            messagebox.showinfo(
+                "Success",
+                f"Collected {len(self.data)} website records"
+            )
+
+        except requests.RequestException as error:
+            self.status.config(text="Scraping failed")
+            messagebox.showerror("Website Error", str(error))
+
+        except Exception as error:
+            self.status.config(text="An error occurred")
+            messagebox.showerror("Error", str(error))
+
+    def display_data(self):
+
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        for item in self.data:
+            self.table.insert(
+                "",
+                tk.END,
+                values=(item["Title"], item["Link"])
+            )
+
+    def export_csv(self):
+
+        if not self.data:
+            messagebox.showwarning("Warning", "No data available")
+            return
+
+        path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv")]
+        )
+
+        if path:
+            pd.DataFrame(self.data).to_csv(
+                path,
+                index=False,
+                encoding="utf-8-sig"
+            )
+            messagebox.showinfo("Success", "CSV file exported successfully")
+
+    def export_excel(self):
+
+        if not self.data:
+            messagebox.showwarning("Warning", "No data available")
+            return
+
+        path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel Files", "*.xlsx")]
+        )
+
+        if path:
+            pd.DataFrame(self.data).to_excel(
+                path,
+                index=False
+            )
+            messagebox.showinfo("Success", "Excel file exported successfully")
+
+    def clear_data(self):
+
+        self.data = []
+
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        self.status.config(text="Data cleared")
+
+
+if __name__ == "__main__":
+
+    root = tk.Tk()
+    app = WebScrapingSystem(root)
+    root.mainloop()
