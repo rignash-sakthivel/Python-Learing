@@ -1,0 +1,678 @@
+
+import os
+import hashlib
+import sqlite3
+import threading
+import tkinter as tk
+
+from tkinter import ttk, filedialog, messagebox
+from tkinter.scrolledtext import ScrolledText
+from pathlib import Path
+import psutil
+import matplotlib.pyplot as plt
+from datetime import datetime
+
+
+class DiskSpaceAnalyzer:
+
+    def __init__(self, root):
+
+        self.root = root
+        self.root.title("Automated Disk Space Analysis and Cleanup Assistant")
+        self.root.geometry("1100x750")
+        self.root.configure(bg="#eaf2f8")
+
+        self.scan_results = []
+        self.duplicates = []
+        self.temp_files = []
+        self.scan_running = False
+
+        self.create_database()
+        self.create_interface()
+        self.load_disk_information()
+
+    # DATABASE
+
+    def create_database(self):
+
+        self.conn = sqlite3.connect(
+            "scan_history.db",
+            check_same_thread=False
+        )
+
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS scan_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scan_date TEXT,
+                folder TEXT,
+                total_files INTEGER,
+                total_size INTEGER
+            )
+        """)
+
+        self.conn.commit()
+
+    # GUI
+
+    def create_interface(self):
+
+        title = tk.Label(
+            self.root,
+            text="DISK SPACE ANALYSIS AND CLEANUP ASSISTANT",
+            font=("Arial", 20, "bold"),
+            bg="#eaf2f8",
+            fg="#154360"
+        )
+        title.pack(pady=15)
+
+        self.disk_label = tk.Label(
+            self.root,
+            text="Loading disk information...",
+            font=("Arial", 12),
+            bg="#eaf2f8"
+        )
+        self.disk_label.pack(pady=5)
+
+        buttons = tk.Frame(
+            self.root,
+            bg="#eaf2f8"
+        )
+        buttons.pack(pady=15)
+
+        actions = [
+            ("Select Folder", self.select_folder),
+            ("Analyze Disk", self.analyze_disk),
+            ("Find Duplicates", self.find_duplicates),
+            ("Find Large Files", self.find_large_files),
+            ("Find Temp Files", self.find_temp_files),
+            ("Storage Chart", self.show_chart),
+            ("View History", self.view_history),
+            ("Export Report", self.export_report),
+            ("Cleanup Selected", self.cleanup_selected)
+        ]
+
+        for index, (name, command) in enumerate(actions):
+
+            tk.Button(
+                buttons,
+                text=name,
+                command=command,
+                width=17,
+                bg="#2874a6",
+                fg="white",
+                font=("Arial", 9, "bold")
+            ).grid(
+                row=index // 3,
+                column=index % 3,
+                padx=7,
+                pady=7
+            )
+
+        self.selected_path = tk.StringVar(
+            value=str(Path.home())
+        )
+
+        tk.Label(
+            self.root,
+            textvariable=self.selected_path,
+            bg="#eaf2f8",
+            fg="#154360",
+            wraplength=1000
+        ).pack(pady=5)
+
+        self.progress = ttk.Progressbar(
+            self.root,
+            orient="horizontal",
+            length=700,
+            mode="indeterminate"
+        )
+        self.progress.pack(pady=10)
+
+        self.table = ttk.Treeview(
+            self.root,
+            columns=("Name", "Size", "Type", "Path"),
+            show="headings",
+            selectmode="extended"
+        )
+
+        self.table.heading("Name", text="File Name")
+        self.table.heading("Size", text="Size (MB)")
+        self.table.heading("Type", text="Type")
+        self.table.heading("Path", text="File Location")
+
+        self.table.column("Name", width=180)
+        self.table.column("Size", width=100)
+        self.table.column("Type", width=100)
+        self.table.column("Path", width=650)
+
+        self.table.pack(
+            fill="both",
+            expand=True,
+            padx=15,
+            pady=10
+        )
+
+        self.status = tk.Label(
+            self.root,
+            text="System Ready",
+            bg="#eaf2f8",
+            font=("Arial", 10)
+        )
+        self.status.pack(pady=5)
+
+    # DISK INFORMATION
+
+    def load_disk_information(self):
+
+        information = []
+
+        for partition in psutil.disk_partitions():
+
+            try:
+                usage = psutil.disk_usage(partition.mountpoint)
+
+                total = usage.total / (1024 ** 3)
+                used = usage.used / (1024 ** 3)
+                free = usage.free / (1024 ** 3)
+
+                information.append(
+                    f"{partition.device} | Total: {total:.2f} GB "
+                    f"| Used: {used:.2f} GB | Free: {free:.2f} GB"
+                )
+
+            except (PermissionError, OSError):
+                continue
+
+        self.disk_label.config(
+            text="\n".join(information) if information
+            else "No accessible disk information"
+        )
+
+    # SELECT FOLDER
+
+    def select_folder(self):
+
+        folder = filedialog.askdirectory()
+
+        if folder:
+
+            self.selected_path.set(folder)
+            self.status.config(text="Folder selected successfully")
+
+    # SCAN FILES
+
+    def analyze_disk(self):
+
+        if self.scan_running:
+            return
+
+        folder = self.selected_path.get()
+
+        if not os.path.isdir(folder):
+            messagebox.showerror("Error", "Invalid folder")
+            return
+
+        self.scan_running = True
+        self.progress.start(10)
+        self.status.config(text="Scanning files...")
+
+        threading.Thread(
+            target=self.scan_worker,
+            args=(folder,),
+            daemon=True
+        ).start()
+
+    def scan_worker(self, folder):
+
+        results = []
+        total_size = 0
+
+        for root, dirs, files in os.walk(folder):
+
+            # Avoid traversing symbolic-link directories
+            dirs[:] = [
+                d for d in dirs
+                if not os.path.islink(os.path.join(root, d))
+            ]
+
+            for filename in files:
+
+                path = os.path.join(root, filename)
+
+                try:
+                    if os.path.islink(path):
+                        continue
+
+                    size = os.path.getsize(path)
+
+                    results.append({
+                        "name": filename,
+                        "size": size,
+                        "type": os.path.splitext(filename)[1],
+                        "path": path
+                    })
+
+                    total_size += size
+
+                except (PermissionError, OSError):
+                    continue
+
+        self.root.after(
+            0,
+            lambda: self.finish_scan(results, total_size, folder)
+        )
+
+    def finish_scan(self, results, total_size, folder):
+
+        self.scan_results = results
+        self.scan_running = False
+        self.progress.stop()
+
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        for item in results:
+
+            self.table.insert(
+                "",
+                tk.END,
+                values=(
+                    item["name"],
+                    f"{item['size'] / (1024 ** 2):.2f}",
+                    item["type"] or "No Extension",
+                    item["path"]
+                )
+            )
+
+        self.status.config(
+            text=f"Scan complete: {len(results)} files | "
+                 f"{total_size / (1024 ** 3):.2f} GB"
+        )
+
+        self.conn.execute(
+            """
+            INSERT INTO scan_history
+            (scan_date, folder, total_files, total_size)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                folder,
+                len(results),
+                total_size
+            )
+        )
+
+        self.conn.commit()
+
+        self.load_disk_information()
+
+        messagebox.showinfo(
+            "Scan Complete",
+            f"Files Found: {len(results)}\n"
+            f"Total Size: {total_size / (1024 ** 2):.2f} MB"
+        )
+
+    # FIND LARGE FILES
+
+    def find_large_files(self):
+
+        if not self.scan_results:
+            messagebox.showwarning(
+                "Warning",
+                "Analyze a folder first"
+            )
+            return
+
+        large_files = [
+            item for item in self.scan_results
+            if item["size"] > 50 * 1024 * 1024
+        ]
+
+        self.display_items(large_files)
+
+        self.status.config(
+            text=f"Found {len(large_files)} files larger than 50 MB"
+        )
+
+    # DUPLICATE FILE DETECTION
+
+    def calculate_hash(self, path):
+
+        sha256 = hashlib.sha256()
+
+        try:
+            with open(path, "rb") as file:
+
+                for block in iter(
+                    lambda: file.read(1024 * 1024),
+                    b""
+                ):
+                    sha256.update(block)
+
+            return sha256.hexdigest()
+
+        except (PermissionError, OSError):
+            return None
+
+    def find_duplicates(self):
+
+        if not self.scan_results:
+            messagebox.showwarning(
+                "Warning",
+                "Analyze a folder first"
+            )
+            return
+
+        self.status.config(text="Checking duplicate files...")
+
+        def worker():
+
+            groups = {}
+
+            # Files with different sizes cannot be identical.
+            size_groups = {}
+
+            for item in self.scan_results:
+
+                size_groups.setdefault(
+                    item["size"], []
+                ).append(item)
+
+            duplicates = []
+
+            for items in size_groups.values():
+
+                if len(items) < 2:
+                    continue
+
+                hashes = {}
+
+                for item in items:
+
+                    file_hash = self.calculate_hash(
+                        item["path"]
+                    )
+
+                    if file_hash:
+                        hashes.setdefault(
+                            file_hash, []
+                        ).append(item)
+
+                for group in hashes.values():
+
+                    if len(group) > 1:
+                        duplicates.extend(group)
+
+            self.root.after(
+                0,
+                lambda: self.finish_duplicates(duplicates)
+            )
+
+        threading.Thread(
+            target=worker,
+            daemon=True
+        ).start()
+
+    def finish_duplicates(self, duplicates):
+
+        self.duplicates = duplicates
+        self.display_items(duplicates)
+
+        self.status.config(
+            text=f"Found {len(duplicates)} duplicate file entries"
+        )
+
+        messagebox.showinfo(
+            "Duplicate Detection",
+            f"Duplicate file entries found: {len(duplicates)}"
+        )
+
+    # TEMPORARY FILES
+
+    def find_temp_files(self):
+
+        if not self.scan_results:
+            messagebox.showwarning(
+                "Warning",
+                "Analyze a folder first"
+            )
+            return
+
+        extensions = [
+            ".tmp", ".temp", ".bak", ".old"
+        ]
+
+        self.temp_files = [
+            item for item in self.scan_results
+            if item["type"].lower() in extensions
+        ]
+
+        self.display_items(self.temp_files)
+
+        self.status.config(
+            text=f"Found {len(self.temp_files)} possible temporary files"
+        )
+
+    # DISPLAY RESULTS
+
+    def display_items(self, items):
+
+        for row in self.table.get_children():
+            self.table.delete(row)
+
+        for item in items:
+
+            self.table.insert(
+                "",
+                tk.END,
+                values=(
+                    item["name"],
+                    f"{item['size'] / (1024 ** 2):.2f}",
+                    item["type"] or "No Extension",
+                    item["path"]
+                )
+            )
+
+    # STORAGE CHART
+
+    def show_chart(self):
+
+        if not self.scan_results:
+            messagebox.showwarning(
+                "Warning",
+                "Analyze a folder first"
+            )
+            return
+
+        total = sum(
+            item["size"] for item in self.scan_results
+        )
+
+        if total == 0:
+            messagebox.showinfo("Information", "No file data to chart")
+            return
+
+        extension_sizes = {}
+
+        for item in self.scan_results:
+
+            extension = item["type"] or "No Extension"
+
+            extension_sizes[extension] = (
+                extension_sizes.get(extension, 0) + item["size"]
+            )
+
+        largest = sorted(
+            extension_sizes.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:8]
+
+        labels = [item[0] for item in largest]
+        sizes = [item[1] / (1024 ** 2) for item in largest]
+
+        plt.figure(figsize=(9, 5))
+
+        plt.bar(labels, sizes)
+
+        plt.title("Storage Usage by File Type")
+        plt.xlabel("File Type")
+        plt.ylabel("Size (MB)")
+
+        plt.tight_layout()
+        plt.show()
+
+    # VIEW HISTORY
+
+    def view_history(self):
+
+        records = self.conn.execute(
+            """
+            SELECT scan_date, folder, total_files, total_size
+            FROM scan_history
+            ORDER BY id DESC
+            """
+        ).fetchall()
+
+        self.display_items([])
+
+        self.status.config(
+            text=f"Total scan history records: {len(records)}"
+        )
+
+        message = "SCAN HISTORY\n\n"
+
+        for record in records:
+
+            message += (
+                f"Date: {record[0]}\n"
+                f"Folder: {record[1]}\n"
+                f"Files: {record[2]}\n"
+                f"Size: {record[3] / (1024 ** 2):.2f} MB\n"
+                "--------------------------\n"
+            )
+
+        messagebox.showinfo(
+            "Scan History",
+            message[:12000] if records else "No scan history available"
+        )
+
+    # EXPORT REPORT
+
+    def export_report(self):
+
+        if not self.scan_results:
+            messagebox.showwarning(
+                "Warning",
+                "No scan results available"
+            )
+            return
+
+        path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv")]
+        )
+
+        if not path:
+            return
+
+        import csv
+
+        with open(
+            path,
+            "w",
+            newline="",
+            encoding="utf-8"
+        ) as file:
+
+            writer = csv.writer(file)
+
+            writer.writerow([
+                "File Name",
+                "Size (MB)",
+                "Type",
+                "File Path"
+            ])
+
+            for item in self.scan_results:
+
+                writer.writerow([
+                    item["name"],
+                    round(
+                        item["size"] / (1024 ** 2), 2
+                    ),
+                    item["type"],
+                    item["path"]
+                ])
+
+        messagebox.showinfo(
+            "Success",
+            "Report exported successfully"
+        )
+
+    # SAFE CLEANUP
+
+    def cleanup_selected(self):
+
+        selected = self.table.selection()
+
+        if not selected:
+            messagebox.showwarning(
+                "Warning",
+                "Select files from the table first"
+            )
+            return
+
+        paths = [
+            self.table.item(row, "values")[3]
+            for row in selected
+        ]
+
+        confirmation = messagebox.askyesno(
+            "Confirm Cleanup",
+            f"Are you sure you want to permanently delete "
+            f"{len(paths)} selected files?\n\n"
+            "This action cannot be undone."
+        )
+
+        if not confirmation:
+            return
+
+        deleted = 0
+        failed = 0
+
+        for path in paths:
+
+            try:
+
+                # Only delete regular files, not symlinks.
+                if os.path.islink(path) or not os.path.isfile(path):
+                    failed += 1
+                    continue
+
+                os.remove(path)
+                deleted += 1
+
+            except (PermissionError, OSError):
+                failed += 1
+
+        self.status.config(
+            text=f"Deleted: {deleted} | Failed: {failed}"
+        )
+
+        messagebox.showinfo(
+            "Cleanup Result",
+            f"Successfully deleted: {deleted}\n"
+            f"Failed: {failed}\n\n"
+            "Run Analyze Disk again to refresh the results."
+        )
+
+
+if __name__ == "__main__":
+
+    root = tk.Tk()
+
+    app = DiskSpaceAnalyzer(root)
+
+    root.mainloop()
