@@ -1,0 +1,210 @@
+#Python modules
+#math_module
+
+# import math
+# a = 25
+# print("Square Root:", math.sqrt(a))
+# print("Power:", math.pow(5, 2))
+# print("Factorial:", math.factorial(5))
+# print("Ceiling:", math.ceil(5.3))
+# print("Floor:", math.floor(5.8))
+# print("Value of Pi:", math.pi)
+
+
+#scipy_module
+# from scipy import constants
+# from scipy.optimize import root
+#
+# print("Speed of Light:", constants.c)
+# print("Gravity:", constants.g)
+# print("Pi:", constants.pi)
+#
+# def equation(x):
+#     return x**2 - 25
+#
+# result = root(equation, 2)
+#
+# print("Equation Root:", result.x[0])
+
+#time_module
+# import time
+# print("Current Time:", time.ctime())
+# print("Starting...")
+# time.sleep(2)
+# print("2 Seconds Completed")
+# print("Timestamp:", time.time())
+
+#calendar_module
+# import calendar
+# year = 2026
+# month = 11
+# print("Full Year Calendar:")
+# print(calendar.calendar(year))
+# print("Specific Month:")
+# print(calendar.month(year, month))
+# print("Is Leap Year:", calendar.isleap(year))
+
+#datetime_module
+# from datetime import datetime, date, time
+# now = datetime.now()
+# print("Current Date:", date.today())
+# print("Current Time:", now.strftime("%H:%M:%S"))
+# print("Full Date:", now)
+# today = date.today()
+# print("Year:", today.year)
+# print("Month:", today.month)
+# print("Day:", today.day)
+
+#random_module
+# import random
+# print("Random Number:", random.randint(1, 100))
+# print("Random Float:", random.random())
+# names = ["Arun", "Bala", "Chitra", "Dinesh"]
+# print("Random Name:", random.choice(names))
+# random.shuffle(names)
+# print("Shuffled List:", names)
+
+#pywhatkit_module
+# import pywhatkit
+#
+# pywhatkit.playonyt("Python Programming Tutorial")
+# pywhatkit.search("Python Programming")
+# print("PyWhatKit executed successfully")
+
+
+#webbrowser_module
+# import webbrowser
+# print("Opening Google...")
+# webbrowser.open("https://www.google.com")
+# print("Opening YouTube...")
+# webbrowser.open("https://www.youtube.com")
+
+#numpy_module
+# import numpy as np
+#
+# a = np.array([10, 20, 30, 40, 50])
+# print("Array:", a)
+# print("Sum:", np.sum(a))
+# print("Maximum:", np.max(a))
+# print("Minimum:", np.min(a))
+# print("Mean:", np.mean(a))
+# print("Square:", np.square(a))
+
+#winsound_module
+# import winsound
+# print("Playing Sound")
+# winsound.Beep(1000, 500)
+# winsound.Beep(1500, 500
+# winsound.MessageBeep()
+# print("Sound Completed")
+
+#pyttsx3_module
+# import pyttsx3
+# engine = pyttsx3.init()
+# engine.setProperty("rate", 150)
+# engine.setProperty("volume", 1.0)
+# engine.say("Welcome to Python Programming")
+# engine.say("Learning Python packages")
+# engine.runAndWait()
+
+#speed_module
+# import timeit
+# def normal():
+#     total = 0
+#     for i in range(10000):
+#         total += i
+#     return total
+# result = timeit.timeit(normal, number=100)
+# print("Calculation Result:", normal())
+# print("Execution Time:", result)
+
+#volume_module
+# from ctypes import cast, POINTER
+# from comtypes import CLSCTX_ALL
+# from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+# devices = AudioUtilities.GetSpeakers()
+# interface = devices.Activate(
+#     IAudioEndpointVolume._iid_,
+#     CLSCTX_ALL,
+#     None
+# )
+# volume = cast(interface, POINTER(IAudioEndpointVolume))
+#
+# volume.SetMasterVolumeLevelScalar(0.8, None)
+#
+# print("Volume Increased to 80%")
+
+#plyer_module
+# from plyer import notification
+# notification.notify(
+#     title="Python Notification",
+#     message="Welcome to Python Programming",
+#     timeout=10
+# )
+# print("Notification Sent")
+
+#bs4_module
+# from bs4 import BeautifulSoup
+# html = """
+# <html>
+# <body>
+# <h1>Python Programming</h1>
+# <p>Welcome to Python</p>
+# <p>Learning Packages</p>
+# </body>
+# </html>
+# """
+# soup = BeautifulSoup(html, "html.parser")
+# print("Heading:", soup.h1.text)
+# for p in soup.find_all("p"):
+#     print("Paragraph:", p.text)
+
+#qrcode_module
+# import qrcode
+#
+# data = "https://www.google.com"
+# qr = qrcode.make(data)
+# qr.save("my_qrcode.png")
+# print("QR Code Created Successfully")
+
+#os_module
+# import os
+# print("Current Directory:", os.getcwd())
+# print("Operating System:", os.name)
+# print("Files:", os.listdir())
+# folder = "Python_Folder"
+# if not os.path.exists(folder):
+#     os.mkdir(folder)
+#
+#     print("Folder Created")
+# else:
+#     print("Folder Already Exists")
+
+#sys_module
+# import sys
+# print("Python Version:", sys.version)
+# print("Platform:", sys.platform)
+# print("Python Executable:", sys.executable)
+# print("Command Line Arguments:", sys.argv)
+# print("Module Search Path:", sys.path)
+
+
+#pillow_module
+# from PIL import Image
+# img = Image.new("RGB", (500, 300), "blue")
+# img.save("python_image.png")
+# print("Image Created")
+# print("Image Size:", img.size)
+# print("Image Mode:", img.mode)
+
+#turtle_module
+# import turtle
+# screen = turtle.Screen()
+# screen.title("Python Turtle Graphics")
+# t = turtle.Turtle()
+# t.color("blue")
+# t.pensize(3)
+# for i in range(4):
+#     t.forward(150)
+#     t.right(90)
+# turtle.done()
