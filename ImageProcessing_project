@@ -1,0 +1,251 @@
+
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk, ImageEnhance, ImageFilter
+import cv2
+import numpy as np
+
+
+class ImageProcessingSystem:
+
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Automated Image Processing System")
+        self.root.geometry("900x650")
+        self.root.configure(bg="#eaf2f8")
+
+        self.image = None
+        self.processed_image = None
+
+        # Title
+        title = tk.Label(
+            root,
+            text="Automated Image Processing System",
+            font=("Arial", 22, "bold"),
+            bg="#eaf2f8",
+            fg="#154360"
+        )
+        title.pack(pady=15)
+
+        # Image Display Area
+        self.image_label = tk.Label(
+            root,
+            text="Upload an image to start processing",
+            bg="white",
+            width=70,
+            height=20
+        )
+        self.image_label.pack(pady=10)
+
+        # Buttons Frame
+        buttons = tk.Frame(root, bg="#eaf2f8")
+        buttons.pack(pady=15)
+
+        # Upload Image
+        tk.Button(
+            buttons,
+            text="Upload Image",
+            command=self.upload_image
+        ).grid(row=0, column=0, padx=5, pady=5)
+
+        # Grayscale
+        tk.Button(
+            buttons,
+            text="Grayscale",
+            command=self.grayscale
+        ).grid(row=0, column=1, padx=5, pady=5)
+
+        # Blur
+        tk.Button(
+            buttons,
+            text="Blur",
+            command=self.blur
+        ).grid(row=0, column=2, padx=5, pady=5)
+
+        # Edge Detection
+        tk.Button(
+            buttons,
+            text="Edge Detection",
+            command=self.edge_detection
+        ).grid(row=0, column=3, padx=5, pady=5)
+
+        # Brightness
+        tk.Button(
+            buttons,
+            text="Brightness",
+            command=self.brightness
+        ).grid(row=1, column=0, padx=5, pady=5)
+
+        # Reset
+        tk.Button(
+            buttons,
+            text="Reset",
+            command=self.reset
+        ).grid(row=1, column=1, padx=5, pady=5)
+
+        # Save Image
+        tk.Button(
+            buttons,
+            text="Save Image",
+            command=self.save_image
+        ).grid(row=1, column=2, padx=5, pady=5)
+
+    # Display Image at 200 x 200 pixels
+    def display_image(self, img):
+
+        preview = img.resize(
+            (200, 200),
+            Image.Resampling.LANCZOS
+        )
+
+        self.photo = ImageTk.PhotoImage(preview)
+
+        self.image_label.config(
+            image=self.photo,
+            text=""
+        )
+
+    # Upload Image
+    def upload_image(self):
+
+        path = filedialog.askopenfilename(
+            filetypes=[
+                ("Image Files", "*.jpg *.jpeg *.png *.bmp")
+            ]
+        )
+
+        if path:
+            try:
+                self.image = Image.open(path).convert("RGB")
+                self.processed_image = self.image.copy()
+
+                self.display_image(self.processed_image)
+
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+    # Grayscale
+    def grayscale(self):
+
+        if self.image is None:
+            messagebox.showwarning(
+                "Warning",
+                "Upload an image first!"
+            )
+            return
+
+        self.processed_image = self.image.convert("L").convert("RGB")
+
+        self.display_image(self.processed_image)
+
+    # Blur
+    def blur(self):
+
+        if self.image is None:
+            messagebox.showwarning(
+                "Warning",
+                "Upload an image first!"
+            )
+            return
+
+        self.processed_image = self.image.filter(
+            ImageFilter.BLUR
+        )
+
+        self.display_image(self.processed_image)
+
+    # Edge Detection
+    def edge_detection(self):
+
+        if self.image is None:
+            messagebox.showwarning(
+                "Warning",
+                "Upload an image first!"
+            )
+            return
+
+        img_array = np.array(self.image)
+
+        gray = cv2.cvtColor(
+            img_array,
+            cv2.COLOR_RGB2GRAY
+        )
+
+        edges = cv2.Canny(gray, 100, 200)
+
+        self.processed_image = Image.fromarray(edges)
+
+        self.display_image(self.processed_image)
+
+    # Brightness
+    def brightness(self):
+
+        if self.image is None:
+            messagebox.showwarning(
+                "Warning",
+                "Upload an image first!"
+            )
+            return
+
+        enhancer = ImageEnhance.Brightness(self.image)
+
+        self.processed_image = enhancer.enhance(1.5)
+
+        self.display_image(self.processed_image)
+
+    # Reset
+    def reset(self):
+
+        if self.image is None:
+            messagebox.showwarning(
+                "Warning",
+                "Upload an image first!"
+            )
+            return
+
+        self.processed_image = self.image.copy()
+
+        self.display_image(self.processed_image)
+
+    # Save Image
+    def save_image(self):
+
+        if self.processed_image is None:
+            messagebox.showwarning(
+                "Warning",
+                "No image to save!"
+            )
+            return
+
+        path = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            filetypes=[
+                ("PNG Image", "*.png"),
+                ("JPEG Image", "*.jpg")
+            ]
+        )
+
+        if path:
+            try:
+                self.processed_image.save(path)
+
+                messagebox.showinfo(
+                    "Success",
+                    "Image saved successfully!"
+                )
+
+            except Exception as e:
+                messagebox.showerror(
+                    "Save Error",
+                    str(e)
+                )
+
+
+# Main Program
+if __name__ == "__main__":
+
+    root = tk.Tk()
+
+    app = ImageProcessingSystem(root)
+
+    root.mainloop()
