@@ -1,0 +1,201 @@
+#builtin_function
+
+# a = [10, 20, 30, 40, 50]
+# print("Length:", len(a))
+# print("Maximum:", max(a))
+# print("Minimum:", min(a))
+# print("Sum:", sum(a))
+# print("Sorted:", sorted(a))
+# print("Type:", type(a))
+
+#user_function
+# def student():
+#     print("Welcome to Python")
+#     print("Learning Functions")
+# student()
+
+#no_argument_no_return
+# def add():
+#     a = 10
+#     b = 20
+#     c = a + b
+#     print("Addition:", c)
+# add()
+
+#argument_no_return
+# def add(a, b):
+#     c = a + b
+#     print("Addition:", c)
+# add(10, 20)
+
+#no_argument_return
+# def add():
+#     a = 10
+#     b = 20
+#     return a + b
+# result = add()
+# print("Addition:", result)
+#
+# argument_return
+# def add(a, b):
+#     return a + b
+# result = add(10, 20)
+# print("Addition:", result)
+#
+# lambda_function
+# add = lambda a, b: a + b
+# print("Addition:", add(10, 20))
+# print("Multiplication:", (lambda a, b: a * b)(5, 4))
+#
+# recursive_function
+# def factorial(n):
+#     if n == 0 or n == 1:
+#         return 1
+#     return n * factorial(n - 1)
+# print("Factorial:", factorial(5))
+#
+# keyword_argument
+# def student(name, age):
+#     print("Name:", name)
+#     print("Age:", age)
+# student(age=23, name="Sakthivel")
+#
+# Find the Largest of Three Numbers
+# def largest(a, b, c):
+#     if a >= b and a >= c:
+#         return a
+#     elif b >= c:
+#         return b
+#     else:
+#         return c
+# print(largest(10, 50, 30))
+#
+# Write a function to count vowels in a given string.
+# def vowels(s):
+#     count = 0
+#     for i in s.lower():
+#         if i in "aeiou":
+#             count += 1
+#
+#     return count
+# print("Vowels:", vowels("Python Programming"))
+#
+# Write a function to count characters without using len()
+# def count(s):
+#     c = 0
+#     for i in s:
+#         c += 1
+#     return c
+# print("Length:", count("Python"))
+#
+# Write a function to check whether a number is prime.
+# def prime(n):
+#     if n <= 1:
+#         return False
+#     for i in range(2, n):
+#         if n % i == 0:
+#             return False
+#     return True
+# print(prime(7))
+#
+# Pass student information using keyword arguments.
+# def student(name, age, department):
+#     print("Name:", name)
+#     print("Age:", age)
+#     print("Department:", department)
+# student(
+#     department="Computer Science",
+#     name="Arun",
+#     age=21
+# )
+
+# Create a Python program using functions to calculate student total marks, average, grade, and pass/fail status.
+# def get_details():
+#     name = input("Enter Student Name: ")
+#     return name
+#
+# def calculate_total(a, b, c, d, e):
+#     return a + b + c + d + e
+#
+# def calculate_average(total):
+#     return total / 5
+#
+# def find_grade(avg):
+#     if avg >= 90:
+#         return "A Grade"
+#     elif avg >= 75:
+#         return "B Grade"
+#     elif avg >= 60:
+#         return "C Grade"
+#     elif avg >= 50:
+#         return "D Grade"
+#     else:
+#         return "Fail"
+#
+# def display_result(name, total, avg, grade):
+#     print("\n----- Student Result -----")
+#     print("Student Name:", name)
+#     print("Total Marks:", total)
+#     print("Average:", avg)
+#     print("Grade:", grade)
+#
+# def main():
+#     name = get_details()
+#
+#     print("Enter Five Subject Marks:")
+#     a = int(input("Tamil: "))
+#     b = int(input("English: "))
+#     c = int(input("Maths: "))
+#     d = int(input("Science: "))
+#     e = int(input("Social: "))
+#
+#     total = calculate_total(a, b, c, d, e)
+#     avg = calculate_average(total)
+#     grade = find_grade(avg)
+#     display_result(name, total, avg, grade)
+# main()
+
+# Create a Python program using functions to calculate employee salary, bonus, deductions, and final salary.
+# 
+# def employee_details():
+#     name = input("Enter Employee Name: ")
+#     emp_id = input("Enter Employee ID: ")
+#     salary = float(input("Enter Basic Salary: "))
+#     return name, emp_id, salary
+# 
+# def calculate_bonus(salary):
+#     if salary >= 50000:
+#         return salary * 0.20
+#     elif salary >= 30000:
+#         return salary * 0.15
+#     else:
+#         return salary * 0.10
+# 
+# def calculate_deduction(salary):
+#     return salary * 0.05
+# 
+# def calculate_final_salary(salary, bonus, deduction):
+#     return salary + bonus - deduction
+# 
+# def display(name, emp_id, salary, bonus, deduction, final):
+#     print("\n----- Employee Salary Details -----")
+#     print("Employee Name:", name)
+#     print("Employee ID:", emp_id)
+#     print("Basic Salary:", salary)
+#     print("Bonus:", bonus)
+#     print("Deduction:", deduction)
+#     print("Final Salary:", final)
+# 
+# def main():
+#     name, emp_id, salary = employee_details()
+# 
+#     bonus = calculate_bonus(salary)
+#     deduction = calculate_deduction(salary)
+# 
+#     final = calculate_final_salary(
+#         salary, bonus, deduction
+#     )
+# 
+#     display(name, emp_id, salary, bonus, deduction, final)
+# 
+# main()
